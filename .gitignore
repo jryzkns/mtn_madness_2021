@@ -1,3 +1,6 @@
+# reference taken from 
+# https://github.com/pacmacro/pm-android/blob/master/.gitignore
+
 *.pdf
 
 # Generated files
