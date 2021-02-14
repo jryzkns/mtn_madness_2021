@@ -36,13 +36,19 @@ public class BookSpine {
 
     // TODO (AUSTIN): apply ocr on this.slice and write result into this.info
     public void extractInfo(){
+        text_from_image(this.slice);
+        Mat rotated = new Mat();
+        Core.rotate(this.slice, rotated, Core.ROTATE_90_COUNTERCLOCKWISE);
+        text_from_image(rotated);
+    }
 
+    public void text_from_image(Mat crop){
         TextRecognizer recognizer = TextRecognition.getClient();
 
-        this.slice.convertTo(this.slice, CV_8UC4);
-        Bitmap temp = Bitmap.createBitmap(this.slice.cols(), this.slice.rows(), Bitmap.Config.RGB_565);
+        crop.convertTo(crop, CV_8UC4);
+        Bitmap temp = Bitmap.createBitmap(crop.cols(), crop.rows(), Bitmap.Config.RGB_565);
 
-        Utils.matToBitmap(this.slice, temp);
+        Utils.matToBitmap(crop, temp);
         InputImage image = InputImage.fromBitmap(temp, 0);
 
         recognizer.process(image)
@@ -66,7 +72,7 @@ public class BookSpine {
     }
 
     public void set_text(String text){
-       this.info = text;
+       this.info += text;
    }
 
     public void draw(Mat dest, int delta) {
