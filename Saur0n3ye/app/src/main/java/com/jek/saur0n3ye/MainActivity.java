@@ -24,7 +24,6 @@ import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // camera ind 0: back cam; camera ind 1: selfie cam
     private int                     currentCamera = 0;
-    private int                     refreshRate = 1;
+    private int                     refreshRate = 7;
     private int                     frame_idx;
 
     private CameraBridgeViewBase    cameraBridgeViewBase;
@@ -94,8 +93,7 @@ public class MainActivity extends AppCompatActivity implements
         };
 
         processingFrame = new Mat();
-        canvas          = new Mat();
-
+        canvas          = AppUtils.getBlankFrame();
         books           = new ArrayList();
     }
 
@@ -111,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
         Mat baseFrame = inputFrame.rgba();
 
         if (frame_idx % refreshRate == 0){
+
             //Preprocessing
             Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.equalizeHist(processingFrame, processingFrame);
@@ -128,12 +127,13 @@ public class MainActivity extends AppCompatActivity implements
                 float y = boundRect.y;
                 float w = boundRect.width;
                 float h = boundRect.height;
-                if(w/h < 40) {
+                if(h/w < 3) {
                     contours.remove(i);
                     continue;
                 }
                 i++;
             }
+
             //Find the biggest size of happy rectangles
             for(int i = 0; i < contours.size(); i++){
                 boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
@@ -145,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements
                     area = w * h;
                 }
             }
+
             //Throw out things that are way too tiny
             for(int i = 0; i < contours.size(); ){
                 boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
@@ -158,6 +159,7 @@ public class MainActivity extends AppCompatActivity implements
                 }
                 i++;
             }
+
             //Add the rectangles to the books
             canvas.release();
             canvas = AppUtils.getBlankFrame();
