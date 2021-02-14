@@ -92,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements
 
         processingFrame = new Mat();
         canvas          = AppUtils.getBlankFrame();
-
         books           = new ArrayList();
     }
 
@@ -124,8 +123,9 @@ public class MainActivity extends AppCompatActivity implements
 
         }
 
-
-        for (BookSpine bs : books){bs.draw(canvas);}
+        int step = 10;
+        int delta = step;
+        for (BookSpine bs : books){bs.draw(canvas, (delta-=step));}
         canvas.copyTo(baseFrame, AppUtils.getAlphaMask(canvas));
 
 
