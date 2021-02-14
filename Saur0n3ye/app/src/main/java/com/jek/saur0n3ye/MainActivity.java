@@ -160,9 +160,9 @@ public class MainActivity extends AppCompatActivity implements
                 i++;
             }
 
-            //Add the rectangles to the books
-            canvas.release();
-            canvas = AppUtils.getBlankFrame();
+//            //Add the rectangles to the books
+//            canvas.release();
+//            canvas = AppUtils.getBlankFrame();
 
             books.clear();
             for (int i = 0; i < contours.size(); i++){
@@ -171,9 +171,6 @@ public class MainActivity extends AppCompatActivity implements
                 float y = boundRect.y;
                 float w = boundRect.width;
                 float h = boundRect.height;
-                //Rect dummySpineRect = new Rect( new Point(100 + 60*i,100),
-                  //                              new Point(150 + 60*i,300));
-                //books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
                 if(h > 50 && 5*w*h > area && h/w > 1) {
                     books.add(new BookSpine(boundRect, baseFrame.submat(boundRect)));
                 }

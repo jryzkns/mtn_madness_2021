@@ -30,7 +30,7 @@ public class BookSpine {
     public BookSpine (Rect location, Mat slice) {
         this.location = location;
         this.slice = slice;
-        this.info = "";
+        this.info = "asdfasdfasd";
         this.extractInfo();
     }
 
@@ -78,7 +78,7 @@ public class BookSpine {
     public void draw(Mat dest, int delta) {
 
         rectangle( dest, this.location.tl(),this.location.br(),AppUtils.RED, 2);
-        Imgproc.putText(dest, info,
+        Imgproc.putText(dest, this.info,
                 new Point(this.location.tl().x,this.location.tl().y-5+delta),
                 Core.FONT_HERSHEY_COMPLEX, 0.35, AppUtils.WHITE);
 
