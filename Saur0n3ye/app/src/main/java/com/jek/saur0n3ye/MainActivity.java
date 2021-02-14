@@ -102,11 +102,6 @@ public class MainActivity extends AppCompatActivity implements
 
         Mat baseFrame = inputFrame.rgba();
 
-
-        canvas.release();
-        canvas = AppUtils.getBlankFrame();
-
-
         if (frame_idx % refreshRate == 0){
 
             Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
@@ -123,11 +118,17 @@ public class MainActivity extends AppCompatActivity implements
 
         }
 
-        int step = 10;
-        int delta = step;
-        for (BookSpine bs : books){bs.draw(canvas, (delta-=step));}
+        //wait for ocr to finish before drawing
+        if (frame_idx % refreshRate == (int)(refreshRate/2)) {
+            canvas.release();
+            canvas = AppUtils.getBlankFrame();
+            int step = 10;
+            int delta = step;
+            for (BookSpine bs : books) {
+                bs.draw(canvas, (delta -= step));
+            }
+        }
         canvas.copyTo(baseFrame, AppUtils.getAlphaMask(canvas));
-
 
         return baseFrame;
     }
