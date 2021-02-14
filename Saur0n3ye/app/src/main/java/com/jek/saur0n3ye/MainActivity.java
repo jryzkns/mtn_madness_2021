@@ -18,12 +18,15 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.imgproc.Imgproc;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements
         CameraBridgeViewBase.CvCameraViewListener2 {
@@ -98,26 +101,87 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Rect[] boundRect;
+        MatOfPoint2f[] contoursPoly  = new MatOfPoint2f[contours.size()];
+        float area = 0;
 
         frame_idx ++;
 
         Mat baseFrame = inputFrame.rgba();
 
         if (frame_idx % refreshRate == 0){
-
+            //Preprocessing
             Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.equalizeHist(processingFrame, processingFrame);
+            Imgproc.Canny(processingFrame,processingFrame,100,150);
+            Imgproc.dilate(processingFrame, processingFrame, new Mat());
+            Imgproc.erode(processingFrame, processingFrame, new Mat());
 
-            // TODO (BIANCA): apply the spining algorithm here to generate all the spine rectangles
+            //Contour Lines
+            Imgproc.findContours(processingFrame, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+            boundRect = new Rect[contours.size()];
 
+            //Remove long rectangles
+            for(int i = 0; i < contours.size(); ){contoursPoly[i] = new MatOfPoint2f();
+                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
+                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                float x = boundRect[i].x;
+                float y = boundRect[i].y;
+                float w = boundRect[i].width;
+                float h = boundRect[i].height;
+                if(w/h < 40) {
+                    contours.remove(i);
+                    continue;
+                }
+                i++;
+            }
+            //Find the biggest size of happy rectangles
+            for(int i = 0; i < contours.size(); i++){
+                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
+                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                float x = boundRect[i].x;
+                float y = boundRect[i].y;
+                float w = boundRect[i].width;
+                float h = boundRect[i].height;
+                if(w*h > area) {
+                    area = w * h;
+                }
+            }
+            //Throw out things that are way too tiny
+            for(int i = 0; i < contours.size(); ){
+                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
+                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                float x = boundRect[i].x;
+                float y = boundRect[i].y;
+                float w = boundRect[i].width;
+                float h = boundRect[i].height;
+                if(w*h*5 < area){
+                    contours.remove(i);
+                    continue;
+                }
+                i++;
+            }
+            //Add the rectangles to the books
             canvas.release();
             canvas = AppUtils.getBlankFrame();
 
             books.clear();
-            for (int i = 0; i < 5; i++){
-                Rect dummySpineRect = new Rect( new Point(100 + 60*i,100),
-                                                new Point(150 + 60*i,300));
-                books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
+            for (int i = 0; i < contours.size(); i++){
+                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
+                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
+                float x = boundRect[i].x;
+                float y = boundRect[i].y;
+                float w = boundRect[i].width;
+                float h = boundRect[i].height;
+
+                //Rect dummySpineRect = new Rect( new Point(100 + 60*i,100),
+                  //                              new Point(150 + 60*i,300));
+                //books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
+                if(h > 50 && 5*w*h > area && h/w > 1) {
+                    books.add(new BookSpine(boundRect[i], baseFrame.submat(boundRect[i])));
+                }
             }
 
             for (BookSpine bs : books){bs.draw(canvas);}
