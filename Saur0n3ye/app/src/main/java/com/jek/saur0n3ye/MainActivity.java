@@ -103,8 +103,7 @@ public class MainActivity extends AppCompatActivity implements
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        Rect[] boundRect;
-        MatOfPoint2f[] contoursPoly  = new MatOfPoint2f[contours.size()];
+        Rect boundRect;
         float area = 0;
 
         frame_idx ++;
@@ -116,21 +115,19 @@ public class MainActivity extends AppCompatActivity implements
             Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.equalizeHist(processingFrame, processingFrame);
             Imgproc.Canny(processingFrame,processingFrame,100,150);
-            Imgproc.dilate(processingFrame, processingFrame, new Mat());
-            Imgproc.erode(processingFrame, processingFrame, new Mat());
+            Imgproc.dilate(processingFrame, processingFrame, new Mat(),new  Point(-1,-1),2);
+            Imgproc.erode(processingFrame, processingFrame, new Mat(),new Point(-1,-1),2);
 
             //Contour Lines
             Imgproc.findContours(processingFrame, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-            boundRect = new Rect[contours.size()];
 
             //Remove long rectangles
-            for(int i = 0; i < contours.size(); ){contoursPoly[i] = new MatOfPoint2f();
-                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
-                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
-                float x = boundRect[i].x;
-                float y = boundRect[i].y;
-                float w = boundRect[i].width;
-                float h = boundRect[i].height;
+            for(int i = 0; i < contours.size(); ){
+                boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
+                float x = boundRect.x;
+                float y = boundRect.y;
+                float w = boundRect.width;
+                float h = boundRect.height;
                 if(w/h < 40) {
                     contours.remove(i);
                     continue;
@@ -139,24 +136,22 @@ public class MainActivity extends AppCompatActivity implements
             }
             //Find the biggest size of happy rectangles
             for(int i = 0; i < contours.size(); i++){
-                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
-                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
-                float x = boundRect[i].x;
-                float y = boundRect[i].y;
-                float w = boundRect[i].width;
-                float h = boundRect[i].height;
+                boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
+                float x = boundRect.x;
+                float y = boundRect.y;
+                float w = boundRect.width;
+                float h = boundRect.height;
                 if(w*h > area) {
                     area = w * h;
                 }
             }
             //Throw out things that are way too tiny
             for(int i = 0; i < contours.size(); ){
-                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
-                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
-                float x = boundRect[i].x;
-                float y = boundRect[i].y;
-                float w = boundRect[i].width;
-                float h = boundRect[i].height;
+                boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
+                float x = boundRect.x;
+                float y = boundRect.y;
+                float w = boundRect.width;
+                float h = boundRect.height;
                 if(w*h*5 < area){
                     contours.remove(i);
                     continue;
@@ -169,18 +164,16 @@ public class MainActivity extends AppCompatActivity implements
 
             books.clear();
             for (int i = 0; i < contours.size(); i++){
-                Imgproc.approxPolyDP(new MatOfPoint2f(contours.get(i).toArray()), contoursPoly[i], 3, true);
-                boundRect[i] = Imgproc.boundingRect(new MatOfPoint(contoursPoly[i].toArray()));
-                float x = boundRect[i].x;
-                float y = boundRect[i].y;
-                float w = boundRect[i].width;
-                float h = boundRect[i].height;
-
+                boundRect = Imgproc.boundingRect(new MatOfPoint2f(contours.get(i).toArray()));
+                float x = boundRect.x;
+                float y = boundRect.y;
+                float w = boundRect.width;
+                float h = boundRect.height;
                 //Rect dummySpineRect = new Rect( new Point(100 + 60*i,100),
                   //                              new Point(150 + 60*i,300));
                 //books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
                 if(h > 50 && 5*w*h > area && h/w > 1) {
-                    books.add(new BookSpine(boundRect[i], baseFrame.submat(boundRect[i])));
+                    books.add(new BookSpine(boundRect, baseFrame.submat(boundRect)));
                 }
             }
 
