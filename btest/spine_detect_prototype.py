@@ -47,7 +47,7 @@ def spine_detect(IMG_PATH):
 	index = 0 
 	for cnt in contours:
 		x,y,w,h = cv2.boundingRect(cnt)
-		if(w/h < 50):
+		if(w/h < 40):
 			contours.pop(index)
 			continue
 		index=index+1
@@ -70,7 +70,7 @@ def spine_detect(IMG_PATH):
 	#Drawing loop
 	for cnt in contours:
 		x,y,w,h = cv2.boundingRect(cnt)
-		if(w*h*5 > area):
+		if(h > 50 and 5*w*h > area and h/w > 1):
 			cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,0),2)
 
 	cv2.imshow("Refined Contours", img)
