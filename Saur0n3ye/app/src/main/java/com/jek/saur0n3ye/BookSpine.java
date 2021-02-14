@@ -69,12 +69,12 @@ public class BookSpine {
        this.info = text;
    }
 
-    public void draw(Mat dest) {
+    public void draw(Mat dest, int delta) {
 
         rectangle( dest, this.location.tl(),this.location.br(),AppUtils.RED, 2);
         Imgproc.putText(dest, info,
-                new Point(this.location.tl().x,this.location.tl().y-5),
-                Core.FONT_HERSHEY_COMPLEX, 0.25, AppUtils.WHITE);
+                new Point(this.location.tl().x,this.location.tl().y-5+delta),
+                Core.FONT_HERSHEY_COMPLEX, 0.35, AppUtils.WHITE);
 
     }
 
