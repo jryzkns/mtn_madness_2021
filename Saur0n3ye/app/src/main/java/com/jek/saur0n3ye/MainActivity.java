@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // camera ind 0: back cam; camera ind 1: selfie cam
     private int                     currentCamera = 0;
-    private int                     refreshRate = 1;
+    private int                     refreshRate = 15;
     private int                     frame_idx;
 
     private CameraBridgeViewBase    cameraBridgeViewBase;
@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements
         };
 
         processingFrame = new Mat();
-        canvas          = new Mat();
+        canvas          = AppUtils.getBlankFrame();
 
         books           = new ArrayList();
     }
@@ -103,15 +103,17 @@ public class MainActivity extends AppCompatActivity implements
 
         Mat baseFrame = inputFrame.rgba();
 
+
+        canvas.release();
+        canvas = AppUtils.getBlankFrame();
+
+
         if (frame_idx % refreshRate == 0){
 
             Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
             Imgproc.equalizeHist(processingFrame, processingFrame);
 
             // TODO (BIANCA): apply the spining algorithm here to generate all the spine rectangles
-
-            canvas.release();
-            canvas = AppUtils.getBlankFrame();
 
             books.clear();
             for (int i = 0; i < 5; i++){
@@ -120,11 +122,12 @@ public class MainActivity extends AppCompatActivity implements
                 books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
             }
 
-            for (BookSpine bs : books){bs.draw(canvas);}
-
         }
 
+
+        for (BookSpine bs : books){bs.draw(canvas);}
         canvas.copyTo(baseFrame, AppUtils.getAlphaMask(canvas));
+
 
         return baseFrame;
     }
