@@ -18,15 +18,28 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.imgproc.Imgproc;
+
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements
         CameraBridgeViewBase.CvCameraViewListener2 {
 
     // camera ind 0: back cam; camera ind 1: selfie cam
     private int                     currentCamera = 0;
+    private int                     refreshRate = 1;
+    private int                     frame_idx;
 
     private CameraBridgeViewBase    cameraBridgeViewBase;
     private BaseLoaderCallback      baseLoaderCallback;
+
+    private Mat                     processingFrame;
+    private Mat                     canvas;
+
+    private ArrayList<BookSpine>    books;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,12 +89,42 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         };
+
+        processingFrame = new Mat();
+        canvas          = new Mat();
+
+        books           = new ArrayList();
     }
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
 
+        frame_idx ++;
+
         Mat baseFrame = inputFrame.rgba();
+
+        if (frame_idx % refreshRate == 0){
+
+            Imgproc.cvtColor(baseFrame, processingFrame, Imgproc.COLOR_RGBA2GRAY);
+            Imgproc.equalizeHist(processingFrame, processingFrame);
+
+            // TODO (BIANCA): apply the spining algorithm here to generate all the spine rectangles
+
+            canvas.release();
+            canvas = AppUtils.getBlankFrame();
+
+            books.clear();
+            for (int i = 0; i < 5; i++){
+                Rect dummySpineRect = new Rect( new Point(100 + 60*i,100),
+                                                new Point(150 + 60*i,300));
+                books.add(new BookSpine(dummySpineRect, baseFrame.submat(dummySpineRect)));
+            }
+
+            for (BookSpine bs : books){bs.draw(canvas);}
+
+        }
+
+        canvas.copyTo(baseFrame, AppUtils.getAlphaMask(canvas));
 
         return baseFrame;
     }
