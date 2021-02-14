@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements
 
     // camera ind 0: back cam; camera ind 1: selfie cam
     private int                     currentCamera = 0;
-    private int                     refreshRate = 7;
+    private int                     refreshRate = 15;
     private int                     frame_idx;
 
     private CameraBridgeViewBase    cameraBridgeViewBase;
@@ -108,6 +108,11 @@ public class MainActivity extends AppCompatActivity implements
 
         Mat baseFrame = inputFrame.rgba();
 
+
+        canvas.release();
+        canvas = AppUtils.getBlankFrame();
+
+
         if (frame_idx % refreshRate == 0){
 
             //Preprocessing
@@ -179,11 +184,12 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
 
-            for (BookSpine bs : books){bs.draw(canvas);}
-
         }
 
+
+        for (BookSpine bs : books){bs.draw(canvas);}
         canvas.copyTo(baseFrame, AppUtils.getAlphaMask(canvas));
+
 
         return baseFrame;
     }
